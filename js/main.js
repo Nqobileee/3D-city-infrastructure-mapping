@@ -227,11 +227,11 @@ for (const road of ROADS) {
 
 // HV transmission — overhead lines + pylons
 {
-  const pylonGeo = new THREE.CylinderGeometry(0.12, 0.28, 3.4, 5);
+  const pylonGeo = new THREE.CylinderGeometry(0.05, 0.09, 0.55, 5);
   const pylonMat = new THREE.MeshStandardMaterial({ color: 0x9aa7b8, roughness: 0.6, metalness: 0.6 });
   const pylonPos = [];
   for (const r of POWER_LINES) {
-    const pts = pathToPoints(r.path, 3.2);
+    const pts = pathToPoints(r.path, 0.5);
     const g = new THREE.BufferGeometry().setFromPoints(pts);
     const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffd23e, transparent: true, opacity: 0.9 }));
     line.userData = { kind: 'transmission', name: r.name };
@@ -240,8 +240,9 @@ for (const road of ROADS) {
     samplePath(pts, 18, p => pylonPos.push(p));
   }
   const pylons = new THREE.InstancedMesh(pylonGeo, pylonMat, pylonPos.length);
+  pylons.frustumCulled = false;
   const m4 = new THREE.Matrix4();
-  pylonPos.forEach((p, i) => { m4.makeTranslation(p.x, 1.7, p.z); pylons.setMatrixAt(i, m4); });
+  pylonPos.forEach((p, i) => { m4.makeTranslation(p.x, 0.28, p.z); pylons.setMatrixAt(i, m4); });
   pylons.userData = { kind: 'pylon' };
   clickables.push(pylons);
   G.power.add(pylons);
@@ -250,14 +251,14 @@ for (const road of ROADS) {
   for (const ps of POWER_STATIONS) {
     const pos = toV3(ps.lon, ps.lat, 0);
     const mesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.4, 1.8, 3.0, 8),
+      new THREE.CylinderGeometry(0.32, 0.42, 0.65, 8),
       new THREE.MeshStandardMaterial({ color: ps.type === 'hydro' ? 0x3aa0ff : 0xffa94d, emissive: ps.type === 'hydro' ? 0x0c2f55 : 0x552b0c, roughness: 0.5 })
     );
-    mesh.position.set(pos.x, 1.5, pos.z);
+    mesh.position.set(pos.x, 0.33, pos.z);
     mesh.userData = { kind: 'power_station', ps };
     clickables.push(mesh);
     G.power.add(mesh);
-    labelSprites.push(addLabel('⚡ ' + ps.name, new THREE.Vector3(pos.x, 7, pos.z), '#ffd23e', 0.6));
+    labelSprites.push(addLabel(ps.name, new THREE.Vector3(pos.x, 3.4, pos.z), '#ffd23e', 0.6));
   }
 }
 
@@ -433,6 +434,7 @@ const tmpM = new THREE.Matrix4(), tmpC = new THREE.Color();
   geo.translate(0, 0.5, 0);
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.15 });
   const mesh = new THREE.InstancedMesh(geo, mat, buildingXforms.length);
+  mesh.frustumCulled = false;
   buildingXforms.forEach((b, i) => {
     tmpM.makeScale(b.w, b.h, b.d).setPosition(b.x, 0.16, b.z);
     mesh.setMatrixAt(i, tmpM);
@@ -465,6 +467,7 @@ instancedAt(new THREE.SphereGeometry(0.05, 8, 8),
   const geo = new THREE.BoxGeometry(0.5, 0.06, 0.28);
   const mat = new THREE.MeshStandardMaterial({ color: 0xff9f1a, emissive: 0x492a00, roughness: 0.5 });
   const mesh = new THREE.InstancedMesh(geo, mat, terminalXforms.length);
+  mesh.frustumCulled = false;
   terminalXforms.forEach((p, i) => {
     tmpM.makeTranslation(p.x, 0.2, p.z);
     mesh.setMatrixAt(i, tmpM);
@@ -475,6 +478,7 @@ instancedAt(new THREE.SphereGeometry(0.05, 8, 8),
 }
 function instancedAt(geo, mat, positions, y, userData, group) {
   const mesh = new THREE.InstancedMesh(geo, mat, positions.length);
+  mesh.frustumCulled = false;
   positions.forEach((p, i) => {
     tmpM.makeTranslation(p.x, y, p.z);
     mesh.setMatrixAt(i, tmpM);
@@ -555,7 +559,7 @@ for (const mine of MINES) {
     ring.position.set(c.x, y, c.z);
     G.mines.add(ring);
   }
-  labelSprites.push(addLabel('⛏ ' + mine.name, new THREE.Vector3(c.x, 5.4, c.z), '#ffb84d', 0.55));
+  labelSprites.push(addLabel(mine.name, new THREE.Vector3(c.x, 5.4, c.z), '#ffb84d', 0.55));
   digAssets.push({ x: c.x, z: c.z, type: 'mine_shaft', owner: mine.owner, depthM: mine.depthKm * 1000, label: mine.name });
 }
 
@@ -621,7 +625,7 @@ const flySel = document.getElementById('flyto');
   const og1 = document.createElement('optgroup'); og1.label = 'Cities';
   CITIES.forEach(c => { const o = document.createElement('option'); o.value = 'c:' + c.name; o.textContent = c.name; og1.appendChild(o); });
   const og2 = document.createElement('optgroup'); og2.label = 'Mines';
-  MINES.forEach(m => { const o = document.createElement('option'); o.value = 'm:' + m.name; o.textContent = '⛏ ' + m.name; og2.appendChild(o); });
+  MINES.forEach(m => { const o = document.createElement('option'); o.value = 'm:' + m.name; o.textContent = m.name; og2.appendChild(o); });
   flySel.appendChild(og1); flySel.appendChild(og2);
 }
 let flyAnim = null;
@@ -633,7 +637,7 @@ flySel.addEventListener('change', () => {
   if (kind === 'c') {
     const c = cityByName[name];
     target = toV3(c.lon, c.lat, 0);
-    dist = c.radius * 3.2; pitchY = c.radius * 2.2;
+    dist = c.radius * 1.6; pitchY = c.radius * 1.1;
   } else {
     const m = MINES.find(x => x.name === name);
     target = toV3(m.lon, m.lat, -m.depthKm * DEPTH_X * 0.45);
@@ -662,7 +666,7 @@ scene.add(digMarker);
 digBtn.addEventListener('click', () => {
   digMode = !digMode;
   digBtn.classList.toggle('active', digMode);
-  digBtn.textContent = digMode ? '✕ Exit dig-safe mode (click map to check a site)' : '🚧 Dig-safe clearance check';
+  digBtn.textContent = digMode ? 'Exit dig-safe mode (click map to check a site)' : 'Dig-safe clearance check';
   renderer.domElement.style.cursor = digMode ? 'crosshair' : 'grab';
   if (!digMode) { digMarker.clear(); hideInfo(); }
 });
@@ -702,7 +706,7 @@ function digCheck(pt) {
 
   const rows = hits.slice(0, 5).map(h =>
     `<tr><td>${h.a.type}</td><td>${h.a.owner}</td><td>${h.a.depthM} m</td><td>${Math.round(h.d * 1000)} m</td></tr>`).join('');
-  showInfo(danger ? '⚠️ DIG-SAFE: ASSETS IN BUFFER' : '✅ DIG-SAFE: CLEAR', `
+  showInfo(danger ? 'DIG-SAFE: ASSETS IN BUFFER' : 'DIG-SAFE: CLEAR', `
     <p class="${danger ? 'warn' : 'ok'}">${danger
       ? `${hits.length} mapped asset${hits.length > 1 ? 's' : ''} within the ${Math.round(BUFFER_KM * 1000)} m demo buffer. Excavation requires owner clearance.`
       : `No mapped assets within the ${Math.round(BUFFER_KM * 1000)} m demo buffer. Advisory only — verify on site.`}</p>
@@ -750,7 +754,7 @@ function describe(hit) {
 
   if (ud.kind === 'mine' || ud.kind === 'mine_tunnel') {
     const m = ud.mine;
-    showInfo('⛏ ' + m.name, `
+    showInfo(m.name, `
       <table>
         <tr><th>mineral</th><td>${m.mineral}</td></tr>
         <tr><th>owner</th><td>${m.owner}</td></tr>
@@ -761,7 +765,7 @@ function describe(hit) {
       <p class="fine">Underground workings shown stylised; depth exaggerated ×${DEPTH_X} for visibility.</p>`);
   } else if (ud.kind === 'power_station') {
     const ps = ud.ps;
-    showInfo('⚡ ' + ps.name, `
+    showInfo(ps.name, `
       <table>
         <tr><th>type</th><td>${ps.type}</td></tr>
         <tr><th>capacity</th><td>≈${ps.mw} MW</td></tr>
@@ -769,23 +773,23 @@ function describe(hit) {
         <tr><th>data_sensitivity</th><td>restricted</td></tr>
       </table>`);
   } else if (ud.kind === 'fibre_trunk') {
-    showInfo('🟢 Fibre trunk — ' + ud.name, record(`
+    showInfo('Fibre trunk — ' + ud.name, record(`
       <tr><th>asset_type</th><td>fibre_duct (trunk)</td></tr>
       <tr><th>owner_org</th><td>${pick(OWNERS.fibre)}</td></tr>
       <tr><th>depth_from_surface</th><td>${(1.1 + rng() * 0.4).toFixed(2)} m</td></tr>`));
   } else if (ud.kind === 'pylon') {
-    showInfo('🗼 Transmission pylon', record(`
+    showInfo('Transmission pylon', record(`
       <tr><th>asset_type</th><td>electricity_pole (HV)</td></tr>
       <tr><th>owner_org</th><td>ZESA Holdings</td></tr>`));
   } else if (ud.records) {
     const r = ud.records[hit.instanceId] || {};
     const titles = {
-      building: ['🏢 Building', `<tr><th>asset_type</th><td>structure</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>height</th><td>≈${Math.round(r.h * 1000)} m (exaggerated)</td></tr>`],
-      manhole: [`⚫ ${r.type || 'Manhole'}`, `<tr><th>asset_type</th><td>${r.type}</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr><tr><th>depth_from_surface</th><td>${r.depthM} m</td></tr>`],
-      hydrant: ['🔴 Fire-fighting water point', `<tr><th>asset_type</th><td>fire_hydrant</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
-      traffic_signal: ['🟣 Traffic signal', `<tr><th>asset_type</th><td>traffic_signal</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
-      water_valve: ['🔵 Water valve', `<tr><th>asset_type</th><td>water_valve</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr><tr><th>depth_from_surface</th><td>${r.depthM} m</td></tr>`],
-      bus_terminal: ['🟠 ' + (r.name || 'Bus terminal'), `<tr><th>asset_type</th><td>bus_terminal</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
+      building: ['Building', `<tr><th>asset_type</th><td>structure</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>height</th><td>≈${Math.round(r.h * 1000)} m (exaggerated)</td></tr>`],
+      manhole: [r.type || 'Manhole', `<tr><th>asset_type</th><td>${r.type}</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr><tr><th>depth_from_surface</th><td>${r.depthM} m</td></tr>`],
+      hydrant: ['Fire-fighting water point', `<tr><th>asset_type</th><td>fire_hydrant</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
+      traffic_signal: ['Traffic signal', `<tr><th>asset_type</th><td>traffic_signal</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
+      water_valve: ['Water valve', `<tr><th>asset_type</th><td>water_valve</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr><tr><th>depth_from_surface</th><td>${r.depthM} m</td></tr>`],
+      bus_terminal: [r.name || 'Bus terminal', `<tr><th>asset_type</th><td>bus_terminal</td></tr><tr><th>city</th><td>${r.city}</td></tr><tr><th>owner_org</th><td>${r.owner}</td></tr>`],
     };
     const t = titles[ud.kind];
     if (t) showInfo(t[0], record(t[1]));
@@ -825,6 +829,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+window.__debug = { scene, camera, controls, G, THREE };
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
