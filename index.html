@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INZILA — Zimbabwe National Infrastructure Digital Twin (Demo)</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <h2>INZILA</h2>
+    <p>Building the national digital twin…</p>
+  </div>
+
+  <!-- header -->
+  <header id="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="30" height="30">
+        <circle cx="16" cy="10" r="6" fill="none" stroke="#35e08a" stroke-width="2.4"/>
+        <path d="M16 16 v10 M9 26 h14 M12 21 h8" stroke="#3aa0ff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>INZILA</h1>
+        <p>National Underground Infrastructure Register — 3D Demo Twin · Zimbabwe</p>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="pill">Demo · synthetic data</span>
+      <span class="pill dim">Depths exaggerated for visibility</span>
+    </div>
+  </header>
+
+  <!-- control panel -->
+  <aside id="panel">
+    <section>
+      <h4>View</h4>
+      <div class="btnrow">
+        <button id="viewSurface">Surface</button>
+        <button id="viewXray">X-ray</button>
+        <button id="viewUnder">Underground</button>
+      </div>
+      <label class="sliderlab">Ground opacity
+        <input type="range" id="xray" min="0.05" max="1" step="0.01" value="1" />
+      </label>
+      <button id="viewNational" class="wide">🌍 National overview</button>
+      <select id="flyto">
+        <option value="">✈ Fly to…</option>
+      </select>
+    </section>
+
+    <section>
+      <h4>Layers</h4>
+      <label><input type="checkbox" data-layer="buildings" checked /><i class="sw" style="--c:#b9c3d3"></i> Buildings</label>
+      <label><input type="checkbox" data-layer="roads" checked /><i class="sw" style="--c:#6b7684"></i> Roads &amp; streets</label>
+      <label><input type="checkbox" data-layer="fibre" checked /><i class="sw" style="--c:#35e08a"></i> Fibre network <em>(underground)</em></label>
+      <label><input type="checkbox" data-layer="water" checked /><i class="sw" style="--c:#3aa0ff"></i> Water reticulation <em>(underground)</em></label>
+      <label><input type="checkbox" data-layer="power" checked /><i class="sw" style="--c:#ffd23e"></i> Electricity grid</label>
+      <label><input type="checkbox" data-layer="street" checked /><i class="sw" style="--c:#ff9f1a"></i> Street assets <em>(manholes, hydrants, signals, terminals)</em></label>
+      <label><input type="checkbox" data-layer="mines" checked /><i class="sw" style="--c:#ffb84d"></i> Mines &amp; tunnels</label>
+      <label><input type="checkbox" data-layer="labels" checked /><i class="sw" style="--c:#ffffff"></i> Labels</label>
+    </section>
+
+    <section>
+      <h4>Dig-safe</h4>
+      <button id="digBtn" class="wide">🚧 Dig-safe clearance check</button>
+      <p class="hint">Toggle, then click anywhere on the map to run a buffer check against every mapped underground asset — the proposal's clearance-tier workflow.</p>
+    </section>
+
+    <section>
+      <h4>Register (live demo counts)</h4>
+      <div id="stats" class="stats"></div>
+    </section>
+  </aside>
+
+  <!-- legend -->
+  <div id="legend">
+    <b>Legend</b>
+    <span><i style="--c:#35e08a"></i> Fibre duct / trunk</span>
+    <span><i style="--c:#3aa0ff"></i> Water pipe / valve</span>
+    <span><i style="--c:#ff5a48"></i> Buried power cable</span>
+    <span><i style="--c:#ffd23e"></i> HV transmission</span>
+    <span><i style="--c:#cfd6dd"></i> Manhole / chamber</span>
+    <span><i style="--c:#ff4757"></i> Fire water point</span>
+    <span><i style="--c:#b06cff"></i> Traffic signal</span>
+    <span><i style="--c:#ff9f1a"></i> Bus terminal</span>
+    <span><i style="--c:#ffb84d"></i> Mine workings</span>
+  </div>
+
+  <!-- asset info card -->
+  <div id="info">
+    <button id="infoClose">×</button>
+    <h3></h3>
+    <div class="body"></div>
+  </div>
+
+  <footer id="foot">
+    Drag to orbit · scroll to zoom · right-drag to pan · click any asset for its register record ·
+    interface languages planned: English / chiShona / isiNdebele
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
