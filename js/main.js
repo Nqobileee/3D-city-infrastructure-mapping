@@ -96,8 +96,9 @@ function ribbon(points, width, material) {
     const n = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(half);
     verts.push(p.x + n.x, p.y, p.z + n.z, p.x - n.x, p.y, p.z - n.z);
     if (i > 0) {
+      // wind counter-clockwise seen from above so faces point +y (visible from the air)
       const a = (i - 1) * 2;
-      idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
     }
   }
   const g = new THREE.BufferGeometry();
@@ -141,8 +142,8 @@ const groundMats = [];
 //    plus underground utility grids beneath the streets.
 // ============================================================
 const R = CITY.radius, STEP = CITY.blockStep;
-const ROAD_W = 0.16;
-const roadMat = new THREE.MeshStandardMaterial({ color: 0x7c828c, roughness: 0.85 });
+const ROAD_W = 0.12;
+const roadMat = new THREE.MeshStandardMaterial({ color: 0x686e78, roughness: 0.85, side: THREE.DoubleSide });
 const WATER_Y = -0.55, FIBRE_Y = -0.85, POWER_Y = -1.15;
 const nBlocks = Math.ceil(R / STEP);
 
@@ -502,8 +503,8 @@ document.getElementById('viewUnder').addEventListener('click', () => { slider.va
 // fly-to
 const flySel = document.getElementById('flyto');
 const flyTargets = {
-  'City centre': { target: pt(0, 0, 0), pos: pt(3, 6.5, 8) },
-  'Joina City (downtown)': { target: pt(LANDMARK.x, 0.4, LANDMARK.z), pos: pt(LANDMARK.x + 1.6, 1.6, LANDMARK.z + 2.2) },
+  'City centre': { target: pt(0, 0, 0), pos: pt(2, 8.5, 6) },
+  'Joina City (downtown)': { target: pt(LANDMARK.x, 0.2, LANDMARK.z), pos: pt(LANDMARK.x + 1.1, 3.4, LANDMARK.z + 1.5) },
   'Freda Rebecca mine': { target: pt(MINE.x, -0.6, MINE.z), pos: pt(MINE.x + 1.9, 1.5, MINE.z + 2.4) },
   'Harare Thermal (power)': { target: pt(POWER_STATION.x, 0.3, POWER_STATION.z), pos: pt(POWER_STATION.x + 1.4, 1.0, POWER_STATION.z + 1.8) },
 };
@@ -687,6 +688,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+window.__debug = { scene, camera, controls, THREE, G };
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
