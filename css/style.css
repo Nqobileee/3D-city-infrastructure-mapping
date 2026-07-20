@@ -28,6 +28,7 @@ html, body {
   inset: 0;
   display: block;
   cursor: grab;
+  touch-action: none;
 }
 #scene:active { cursor: grabbing; }
 
@@ -110,6 +111,7 @@ html, body {
   border-radius: var(--radius);
   padding: 14px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -228,6 +230,7 @@ select#flyto {
   border-radius: var(--radius);
   padding: 12px 14px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -258,6 +261,7 @@ select#flyto {
   border-radius: var(--radius);
   padding: 16px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transform: translateX(340px);
   opacity: 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
@@ -315,7 +319,30 @@ select#flyto {
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
-  #panel { width: calc(100% - 32px); bottom: auto; max-height: 46vh; }
+  #panel { width: calc(100% - 24px); left: 12px; bottom: auto; max-height: 44vh; }
   #legend { display: none; }
-  #info { left: 16px; right: 16px; width: auto; top: auto; bottom: 16px; }
+  #info { left: 12px; right: 12px; width: auto; top: auto; bottom: 12px; max-height: 50vh; }
+}
+
+@media (max-width: 640px) {
+  #topbar { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+  #topbar h1 { font-size: 15px; letter-spacing: 0.1em; }
+  #topbar .brand p { font-size: 10px; }
+  .pill { font-size: 9.5px; padding: 4px 8px; }
+  .pill.dim { display: none; }
+
+  #panel { top: 66px; left: 8px; width: calc(100% - 16px); max-height: 40vh; padding: 10px; gap: 12px; }
+  #panel h4 { font-size: 10px; }
+  #panel label { font-size: 12px; min-height: 30px; }
+  #panel input[type="checkbox"] { width: 17px; height: 17px; }
+
+  .btnrow button, button.wide, select#flyto { min-height: 40px; }
+
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stats b { font-size: 14px; }
+
+  #info { left: 8px; right: 8px; bottom: 8px; padding: 12px; max-height: 46vh; }
+  #info h3 { font-size: 14px; }
+
+  #foot { font-size: 9.5px; padding: 6px 10px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
 }

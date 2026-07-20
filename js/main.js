@@ -49,8 +49,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x060d18);
-scene.fog = new THREE.FogExp2(0x060d18, 0.012);
+scene.background = new THREE.Color(0xbfe3f5);
+scene.fog = new THREE.FogExp2(0xbfe3f5, 0.01);
 
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.03, 800);
 camera.position.set(3, 15, 19);
@@ -63,23 +63,10 @@ controls.minDistance = 0.15;
 controls.maxPolarAngle = Math.PI * 0.86;
 controls.target.set(0.5, 0, 0.5);
 
-scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x2a2118, 0.85));
-const sun = new THREE.DirectionalLight(0xfff2d8, 1.6);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xcbb99a, 1.05));
+const sun = new THREE.DirectionalLight(0xfff8ec, 1.75);
 sun.position.set(-30, 45, -18);
 scene.add(sun);
-
-// starfield backdrop
-{
-  const g = new THREE.BufferGeometry();
-  const n = 700, pos = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const v = new THREE.Vector3().randomDirection().multiplyScalar(280);
-    v.y = Math.abs(v.y) * 0.9 + 30;
-    pos.set([v.x, v.y, v.z], i * 3);
-  }
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x8fb7ff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0.5 })));
-}
 
 // ---------- groups (layer toggles) ----------
 const G = {
@@ -138,8 +125,8 @@ const GROUND_R = 15.5, GROUND_DEPTH = 3.2;
 const groundMats = [];
 {
   const geo = new THREE.CylinderGeometry(GROUND_R, GROUND_R, GROUND_DEPTH, 64, 1, false);
-  const capMat = new THREE.MeshStandardMaterial({ color: 0x5d6b3c, roughness: 0.95 });
-  const sideMat = new THREE.MeshStandardMaterial({ color: 0x4a3628, roughness: 1.0 });
+  const capMat = new THREE.MeshStandardMaterial({ color: 0xf1e9d8, roughness: 0.95 });
+  const sideMat = new THREE.MeshStandardMaterial({ color: 0xc2ac82, roughness: 1.0 });
   groundMats.push(capMat, sideMat);
   const ground = new THREE.Mesh(geo, [sideMat, capMat, capMat]);
   ground.position.y = -GROUND_DEPTH / 2;
@@ -152,7 +139,8 @@ const groundMats = [];
 //    plus underground utility grids beneath the streets.
 // ============================================================
 const R = CITY.radius, STEP = CITY.blockStep;
-const ROAD_W = 0.09;
+const ROAD_W = 0.16;
+const roadMat = new THREE.MeshStandardMaterial({ color: 0x7c828c, roughness: 0.85 });
 const WATER_Y = -0.55, FIBRE_Y = -0.85, POWER_Y = -1.15;
 const nBlocks = Math.ceil(R / STEP);
 
@@ -180,7 +168,7 @@ for (let g = -nBlocks; g <= nBlocks; g++) {
     if ((g + 2) % 3 === 0) powerSegs.push([pt(-halfZ, z, POWER_Y), pt(halfZ, z, POWER_Y)]);
   }
 }
-for (const [a, b] of streetSegs) G.roads.add(ribbon([a, b], ROAD_W, new THREE.MeshStandardMaterial({ color: 0x353c46, roughness: 0.9 })));
+for (const [a, b] of streetSegs) G.roads.add(ribbon([a, b], ROAD_W, roadMat));
 
 // city block cells -> sparse buildings with visible margins to the street
 const cellMargin = 0.20; // fraction of step reserved as clear gap to the road on each side
@@ -294,14 +282,15 @@ const tmpM = new THREE.Matrix4(), tmpC = new THREE.Color();
 {
   const geo = new THREE.BoxGeometry(1, 1, 1);
   geo.translate(0, 0.5, 0);
-  const mat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.15 });
+  const mat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05 });
   const mesh = new THREE.InstancedMesh(geo, mat, buildingXforms.length);
   mesh.frustumCulled = false;
   buildingXforms.forEach((b, i) => {
     tmpM.makeScale(b.w, b.h, b.d).setPosition(b.x, 0.05, b.z);
     mesh.setMatrixAt(i, tmpM);
-    const glass = b.hue < 0.28;
-    tmpC.setHSL(glass ? 0.58 : 0.08, glass ? 0.38 : 0.06, glass ? 0.45 + rng() * 0.2 : 0.55 + rng() * 0.3);
+    const cool = b.hue < 0.5;
+    const hue = cool ? 0.56 + rng() * 0.06 : 0.09 + rng() * 0.05;
+    tmpC.setHSL(hue, 0.06 + rng() * 0.1, 0.80 + rng() * 0.14);
     mesh.setColorAt(i, tmpC);
   });
   mesh.userData = { kind: 'building', records: buildingRecords };
@@ -379,7 +368,7 @@ instancedAt(new THREE.SphereGeometry(0.045, 8, 8),
   const ang = Math.atan2(MINE.z, MINE.x);
   const edge = pt(Math.cos(ang) * R * 0.99, 0.05, Math.sin(ang) * R * 0.99);
   const roadPts = [edge, pt(MINE.x - 0.6, 0.05, MINE.z + 0.4), minePos.clone().setY(0.05)];
-  G.roads.add(ribbon(roadPts, 0.14, new THREE.MeshStandardMaterial({ color: 0x353c46, roughness: 0.9 })));
+  G.roads.add(ribbon(roadPts, 0.16, roadMat));
 
   // fibre spur to the mine (SCADA / monitoring link)
   const fibrePts = roadPts.map(p => p.clone().setY(FIBRE_Y));
