@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CITY, LANDMARK, MINE, POWER_STATION, OWNERS } from './data.js';
 
-function pt(x, z, y = 0) { return new THREE.Vector3(x, y, z); }
+function pt(x, y = 0, z = 0) { return new THREE.Vector3(x, y, z); }
 
 // ---------- seeded RNG so the demo is deterministic ----------
 function mulberry32(a) {
@@ -47,6 +47,8 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xbfe3f5);
@@ -63,8 +65,8 @@ controls.minDistance = 0.15;
 controls.maxPolarAngle = Math.PI * 0.86;
 controls.target.set(0.5, 0, 0.5);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xcbb99a, 1.05));
-const sun = new THREE.DirectionalLight(0xfff8ec, 1.75);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xcbb99a, 0.75));
+const sun = new THREE.DirectionalLight(0xfff8ec, 1.15);
 sun.position.set(-30, 45, -18);
 scene.add(sun);
 
@@ -154,18 +156,18 @@ for (let g = -nBlocks; g <= nBlocks; g++) {
   const x = g * STEP;
   const half = Math.sqrt(Math.max(0, R * R - x * x));
   if (half > STEP * 0.4) {
-    streetSegs.push([pt(x, -half, 0.05), pt(x, half, 0.05)]);
-    if (g % 3 === 0) waterSegs.push([pt(x, -half, WATER_Y), pt(x, half, WATER_Y)]);
-    if (g % 4 === 0) fibreSegs.push([pt(x, -half, FIBRE_Y), pt(x, half, FIBRE_Y)]);
-    if ((g + 2) % 3 === 0) powerSegs.push([pt(x, -half, POWER_Y), pt(x, half, POWER_Y)]);
+    streetSegs.push([pt(x, 0.05, -half), pt(x, 0.05, half)]);
+    if (g % 3 === 0) waterSegs.push([pt(x, WATER_Y, -half), pt(x, WATER_Y, half)]);
+    if (g % 4 === 0) fibreSegs.push([pt(x, FIBRE_Y, -half), pt(x, FIBRE_Y, half)]);
+    if ((g + 2) % 3 === 0) powerSegs.push([pt(x, POWER_Y, -half), pt(x, POWER_Y, half)]);
   }
   const z = g * STEP;
   const halfZ = Math.sqrt(Math.max(0, R * R - z * z));
   if (halfZ > STEP * 0.4) {
-    streetSegs.push([pt(-halfZ, z, 0.05), pt(halfZ, z, 0.05)]);
-    if (g % 3 === 0) waterSegs.push([pt(-halfZ, z, WATER_Y), pt(halfZ, z, WATER_Y)]);
-    if (g % 4 === 0) fibreSegs.push([pt(-halfZ, z, FIBRE_Y), pt(halfZ, z, FIBRE_Y)]);
-    if ((g + 2) % 3 === 0) powerSegs.push([pt(-halfZ, z, POWER_Y), pt(halfZ, z, POWER_Y)]);
+    streetSegs.push([pt(-halfZ, 0.05, z), pt(halfZ, 0.05, z)]);
+    if (g % 3 === 0) waterSegs.push([pt(-halfZ, WATER_Y, z), pt(halfZ, WATER_Y, z)]);
+    if (g % 4 === 0) fibreSegs.push([pt(-halfZ, FIBRE_Y, z), pt(halfZ, FIBRE_Y, z)]);
+    if ((g + 2) % 3 === 0) powerSegs.push([pt(-halfZ, POWER_Y, z), pt(halfZ, POWER_Y, z)]);
   }
 }
 for (const [a, b] of streetSegs) G.roads.add(ribbon([a, b], ROAD_W, roadMat));
