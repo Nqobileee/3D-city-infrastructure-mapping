@@ -44,44 +44,50 @@
 
   <!-- control panel -->
   <aside id="panel">
-    <section>
-      <h4>View</h4>
-      <div class="btnrow">
-        <button id="viewSurface">Surface</button>
-        <button id="viewXray">X-ray</button>
-        <button id="viewUnder">Underground</button>
-      </div>
-      <label class="sliderlab">Ground opacity
-        <input type="range" id="xray" min="0.05" max="1" step="0.01" value="1" />
-      </label>
-      <button id="viewNational" class="wide">Reset view</button>
-      <select id="flyto">
-        <option value="">Fly to…</option>
-      </select>
-    </section>
+    <button id="panelToggle" aria-expanded="true">
+      <span>Controls</span>
+      <i class="chev">&#9662;</i>
+    </button>
+    <div class="panelBody">
+      <section>
+        <h4>View</h4>
+        <div class="btnrow">
+          <button id="viewSurface">Surface</button>
+          <button id="viewXray">X-ray</button>
+          <button id="viewUnder">Underground</button>
+        </div>
+        <label class="sliderlab">Ground opacity
+          <input type="range" id="xray" min="0.05" max="1" step="0.01" value="1" />
+        </label>
+        <button id="viewNational" class="wide">Reset view</button>
+        <select id="flyto">
+          <option value="">Fly to…</option>
+        </select>
+      </section>
 
-    <section>
-      <h4>Layers</h4>
-      <label><input type="checkbox" data-layer="buildings" checked /><i class="sw" style="--c:#b9c3d3"></i> Buildings</label>
-      <label><input type="checkbox" data-layer="roads" checked /><i class="sw" style="--c:#6b7684"></i> Roads &amp; streets</label>
-      <label><input type="checkbox" data-layer="fibre" checked /><i class="sw" style="--c:#35e08a"></i> Fibre network <em>(underground)</em></label>
-      <label><input type="checkbox" data-layer="water" checked /><i class="sw" style="--c:#3aa0ff"></i> Water reticulation <em>(underground)</em></label>
-      <label><input type="checkbox" data-layer="power" checked /><i class="sw" style="--c:#ffd23e"></i> Electricity grid</label>
-      <label><input type="checkbox" data-layer="street" checked /><i class="sw" style="--c:#ff9f1a"></i> Street assets <em>(manholes, hydrants, signals, terminals)</em></label>
-      <label><input type="checkbox" data-layer="mines" checked /><i class="sw" style="--c:#ffb84d"></i> Mine &amp; tunnels</label>
-      <label><input type="checkbox" data-layer="labels" checked /><i class="sw" style="--c:#ffffff"></i> Labels</label>
-    </section>
+      <section>
+        <h4>Layers</h4>
+        <label><input type="checkbox" data-layer="buildings" checked /><i class="sw" style="--c:#b9c3d3"></i> Buildings</label>
+        <label><input type="checkbox" data-layer="roads" checked /><i class="sw" style="--c:#6b7684"></i> Roads &amp; streets</label>
+        <label><input type="checkbox" data-layer="fibre" checked /><i class="sw" style="--c:#35e08a"></i> Fibre network <em>(underground)</em></label>
+        <label><input type="checkbox" data-layer="water" checked /><i class="sw" style="--c:#3aa0ff"></i> Water reticulation <em>(underground)</em></label>
+        <label><input type="checkbox" data-layer="power" checked /><i class="sw" style="--c:#ffd23e"></i> Electricity grid</label>
+        <label><input type="checkbox" data-layer="street" checked /><i class="sw" style="--c:#ff9f1a"></i> Street assets <em>(manholes, hydrants, signals, terminals)</em></label>
+        <label><input type="checkbox" data-layer="mines" checked /><i class="sw" style="--c:#ffb84d"></i> Mine &amp; tunnels</label>
+        <label><input type="checkbox" data-layer="labels" checked /><i class="sw" style="--c:#ffffff"></i> Labels</label>
+      </section>
 
-    <section>
-      <h4>Dig-safe</h4>
-      <button id="digBtn" class="wide">Dig-safe clearance check</button>
-      <p class="hint">Toggle, then click anywhere on the map to run a buffer check against every mapped underground asset — the proposal's clearance-tier workflow.</p>
-    </section>
+      <section>
+        <h4>Dig-safe</h4>
+        <button id="digBtn" class="wide">Dig-safe clearance check</button>
+        <p class="hint">Toggle, then click anywhere on the map to run a buffer check against every mapped underground asset — the proposal's clearance-tier workflow.</p>
+      </section>
 
-    <section>
-      <h4>Register (live demo counts)</h4>
-      <div id="stats" class="stats"></div>
-    </section>
+      <section>
+        <h4>Register (live demo counts)</h4>
+        <div id="stats" class="stats"></div>
+      </section>
+    </div>
   </aside>
 
   <!-- legend -->

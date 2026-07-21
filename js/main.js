@@ -176,12 +176,13 @@ for (const [a, b] of streetSegs) G.roads.add(ribbon([a, b], ROAD_W, roadMat));
 // city block cells -> each occupied block gets a cluster of buildings
 // (minimum 6, arranged in a small sub-grid) with a clear margin to the street
 const cellMargin = 0.14; // fraction of step reserved as clear gap to the road on each side
+const plazaCells = []; // block centres left empty, available for bus terminals etc.
 for (let gx = -nBlocks; gx < nBlocks; gx++) {
   for (let gz = -nBlocks; gz < nBlocks; gz++) {
     const cx = (gx + 0.5) * STEP, cz = (gz + 0.5) * STEP;
     const distC = Math.hypot(cx, cz);
     if (distC > R * 0.97) continue;
-    if (rng() < 0.12) continue; // leave some blocks empty as plazas / open ground
+    if (rng() < 0.12) { plazaCells.push({ x: cx, z: cz, distC }); continue; } // leave some blocks empty as plazas / open ground
 
     const downtown = distC < R * 0.32;
     const n = downtown ? 8 + Math.floor(rng() * 5) : 6 + Math.floor(rng() * 3);
@@ -255,10 +256,21 @@ for (const p of intersections) {
 }
 stats.surface = manholePos.length + hydrantPos.length + lightPos.length + valvePos.length;
 
-// bus terminals
-for (const p of [{ x: R * 0.42, z: R * 0.1 }, { x: -R * 0.35, z: -R * 0.3 }]) {
-  terminalXforms.push(p);
-  terminalRecords.push({ city: CITY.name, owner: pick(OWNERS.transit), name: 'Bus Terminal' });
+// bus terminals — placed on empty plaza blocks so they never overlap a building
+{
+  const candidates = plazaCells
+    .filter(p => p.distC > R * 0.15 && p.distC < R * 0.75)
+    .sort(() => rng() - 0.5);
+  const chosen = [];
+  for (const c of candidates) {
+    if (chosen.length >= 2) break;
+    if (chosen.every(p => Math.hypot(p.x - c.x, p.z - c.z) > R * 0.4)) chosen.push(c);
+  }
+  if (chosen.length === 0 && plazaCells.length) chosen.push(plazaCells[0]);
+  chosen.forEach((p, i) => {
+    terminalXforms.push(p);
+    terminalRecords.push({ city: CITY.name, owner: pick(OWNERS.transit), name: chosen.length > 1 ? `Bus Terminal ${i + 1}` : 'Bus Terminal' });
+  });
 }
 
 // sample underground grids into dig-safe search set
@@ -359,7 +371,9 @@ instancedAt(new THREE.SphereGeometry(0.045, 8, 8),
   labelSprites.push(addLabel(POWER_STATION.name, pt(POWER_STATION.x, 1.15, POWER_STATION.z), '#ffd23e', 0.6));
 
   const minePos = pt(MINE.x, 0.5, MINE.z);
-  const hvPts = [psPos.clone().setY(0.5), pt(-2.0, 1.6, 0.5), pt(2.6, 0.4, -0.6), minePos.clone().setY(0.5)];
+  const PYLON_Y = 0.22, PYLON_H = 0.42;
+  const WIRE_Y = PYLON_Y + PYLON_H / 2; // sits right at the pylon tops
+  const hvPts = [psPos.clone().setY(WIRE_Y), pt(-2.0, WIRE_Y, 0.5), pt(2.6, WIRE_Y, -0.6), minePos.clone().setY(WIRE_Y)];
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(hvPts), new THREE.LineBasicMaterial({ color: 0xffd23e, transparent: true, opacity: 0.9 }));
   line.userData = { kind: 'transmission', name: 'Regional HV corridor' };
   G.power.add(line);
@@ -368,12 +382,12 @@ instancedAt(new THREE.SphereGeometry(0.045, 8, 8),
   const pylonPos = [];
   samplePath(hvPts, 0.9, p => pylonPos.push(p));
   const pylons = new THREE.InstancedMesh(
-    new THREE.CylinderGeometry(0.035, 0.06, 0.42, 5),
+    new THREE.CylinderGeometry(0.035, 0.06, PYLON_H, 5),
     new THREE.MeshStandardMaterial({ color: 0x9aa7b8, roughness: 0.6, metalness: 0.6 }),
     pylonPos.length
   );
   pylons.frustumCulled = false;
-  pylonPos.forEach((p, i) => { tmpM.makeTranslation(p.x, 0.22, p.z); pylons.setMatrixAt(i, tmpM); });
+  pylonPos.forEach((p, i) => { tmpM.makeTranslation(p.x, PYLON_Y, p.z); pylons.setMatrixAt(i, tmpM); });
   pylons.userData = { kind: 'pylon' };
   clickables.push(pylons);
   G.power.add(pylons);
@@ -491,6 +505,14 @@ function addLabel(text, pos, color = '#fff', scale = 1) {
 // ============================================================
 // 6. UI WIRING
 // ============================================================
+const panelEl = document.getElementById('panel');
+const panelToggle = document.getElementById('panelToggle');
+if (window.innerWidth <= 860) panelEl.classList.add('collapsed'); // start collapsed on phones/tablets so the map isn't hidden
+panelToggle.addEventListener('click', () => {
+  const collapsed = panelEl.classList.toggle('collapsed');
+  panelToggle.setAttribute('aria-expanded', String(!collapsed));
+});
+
 for (const cb of document.querySelectorAll('[data-layer]')) {
   cb.addEventListener('change', () => { G[cb.dataset.layer].visible = cb.checked; });
 }
