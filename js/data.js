@@ -10,7 +10,7 @@ export const CITY = {
   name: 'Harare CBD',
   subtitle: 'Phase 1 pilot corridor',
   radius: 5.0,       // km
-  blockStep: 0.55,   // km between street lines
+  blockStep: 1.3,    // km between street lines
 };
 
 // A named landmark building, called out in the proposal (Figure 1

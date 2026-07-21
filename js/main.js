@@ -173,27 +173,38 @@ for (let g = -nBlocks; g <= nBlocks; g++) {
 }
 for (const [a, b] of streetSegs) G.roads.add(ribbon([a, b], ROAD_W, roadMat));
 
-// city block cells -> sparse buildings with visible margins to the street
-const cellMargin = 0.20; // fraction of step reserved as clear gap to the road on each side
+// city block cells -> each occupied block gets a cluster of buildings
+// (minimum 6, arranged in a small sub-grid) with a clear margin to the street
+const cellMargin = 0.14; // fraction of step reserved as clear gap to the road on each side
 for (let gx = -nBlocks; gx < nBlocks; gx++) {
   for (let gz = -nBlocks; gz < nBlocks; gz++) {
     const cx = (gx + 0.5) * STEP, cz = (gz + 0.5) * STEP;
     const distC = Math.hypot(cx, cz);
     if (distC > R * 0.97) continue;
-    if (rng() < 0.16) continue; // leave some cells empty as plazas / open ground
+    if (rng() < 0.12) continue; // leave some blocks empty as plazas / open ground
 
     const downtown = distC < R * 0.32;
-    const maxFoot = STEP * (1 - cellMargin * 2);
-    const n = downtown && rng() < 0.4 ? 2 : 1;
-    for (let k = 0; k < n; k++) {
-      const jitter = 0.16;
-      const bx = cx + (n > 1 ? (k === 0 ? -STEP * 0.22 : STEP * 0.22) : 0) + (rng() - 0.5) * STEP * jitter;
-      const bz = cz + (rng() - 0.5) * STEP * jitter;
-      const w = maxFoot * (0.42 + rng() * 0.4) * (n > 1 ? 0.72 : 1);
-      const d = maxFoot * (0.42 + rng() * 0.4) * (n > 1 ? 0.72 : 1);
-      const h = downtown ? 0.30 + rng() * 0.85 : 0.05 + (1 - distC / R) * 0.30 * (0.4 + rng() * 1.3);
-      buildingXforms.push({ x: bx, z: bz, w, d, h, hue: rng() });
-      buildingRecords.push({ city: CITY.name, h });
+    const n = downtown ? 8 + Math.floor(rng() * 5) : 6 + Math.floor(rng() * 3);
+    const availSide = STEP * (1 - cellMargin * 2);
+    const cols = 3;
+    const rows = Math.ceil(n / cols);
+    const subW = availSide / cols, subD = availSide / rows;
+
+    let placed = 0;
+    for (let r = 0; r < rows && placed < n; r++) {
+      for (let c = 0; c < cols && placed < n; c++) {
+        const offX = -availSide / 2 + subW * (c + 0.5);
+        const offZ = -availSide / 2 + subD * (r + 0.5);
+        const jitter = 0.15;
+        const bx = cx + offX + (rng() - 0.5) * subW * jitter;
+        const bz = cz + offZ + (rng() - 0.5) * subD * jitter;
+        const w = subW * (0.55 + rng() * 0.3);
+        const d = subD * (0.55 + rng() * 0.3);
+        const h = downtown ? 0.28 + rng() * 0.85 : 0.05 + (1 - distC / R) * 0.30 * (0.4 + rng() * 1.3);
+        buildingXforms.push({ x: bx, z: bz, w, d, h, hue: rng() });
+        buildingRecords.push({ city: CITY.name, h });
+        placed++;
+      }
     }
   }
 }
@@ -688,7 +699,6 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-window.__debug = { scene, camera, controls, THREE, G };
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
